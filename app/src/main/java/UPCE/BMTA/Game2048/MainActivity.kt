@@ -86,7 +86,6 @@ fun GameScreen(viewModel: GameViewModel) {
                 if (gameState?.gameOver == true || (gameState?.hasWon == true && gameState?.gameOver == false)) {
                     GameOverOverlay(
                         hasWon = gameState?.hasWon ?: false,
-                        isGameOver = gameState?.gameOver ?: false,
                         onTryAgain = { viewModel.newGame() }
                     )
                 }
@@ -172,8 +171,8 @@ fun GameGrid(
     tiles: List<Tile>,
     onSwipe: (GameViewModel.Direction) -> Unit
 ) {
-    var offsetX by remember { mutableStateOf(0f) }
-    var offsetY by remember { mutableStateOf(0f) }
+    var offsetX by remember { mutableFloatStateOf(0f) }
+    var offsetY by remember { mutableFloatStateOf(0f) }
 
     val gridSize = 4
     val fullGrid = (0 until gridSize * gridSize).map { position ->
@@ -269,7 +268,6 @@ fun TileItem(tile: Tile?) {
 @Composable
 fun GameOverOverlay(
     hasWon: Boolean,
-    isGameOver: Boolean,
     onTryAgain: () -> Unit
 ) {
     Box(
