@@ -68,7 +68,7 @@ fun GameScreen(viewModel: GameViewModel) {
             ) {
                 Column(
                     modifier = Modifier
-                        .weight(0.3f)
+                        .width(200.dp)
                         .fillMaxHeight(),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -89,8 +89,9 @@ fun GameScreen(viewModel: GameViewModel) {
 
                 Box(
                     modifier = Modifier
-                        .weight(0.7f)
+                        .fillMaxHeight()
                         .aspectRatio(1f)
+                        .align(Alignment.CenterVertically)
                 ) {
                     GameGrid(
                         tiles = gameState?.tiles ?: emptyList(),
@@ -315,6 +316,7 @@ fun GameGrid(
                 .padding(4.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
+            userScrollEnabled = false
         ) {
             items(fullGrid) { tile ->
                 TileItem(tile = tile)
