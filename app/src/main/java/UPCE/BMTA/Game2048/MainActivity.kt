@@ -5,28 +5,30 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import UPCE.BMTA.Game2048.model.Tile
 import UPCE.BMTA.Game2048.ui.theme.Game2048Theme
 import UPCE.BMTA.Game2048.viewmodel.GameViewModel
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 class MainActivity : ComponentActivity() {
     private val viewModel: GameViewModel by viewModels()
@@ -175,9 +177,6 @@ fun GameGrid(
     var offsetY by remember { mutableFloatStateOf(0f) }
 
     val gridSize = 4
-    val fullGrid = (0 until gridSize * gridSize).map { position ->
-        tiles.find { it.position == position }
-    }
 
     Card(
         modifier = Modifier
@@ -185,7 +184,6 @@ fun GameGrid(
             .pointerInput(Unit) {
                 detectDragGestures(
                     onDragStart = {
-                        // Reset offsets when starting a new drag
                         offsetX = 0f
                         offsetY = 0f
                     },
@@ -226,51 +224,160 @@ fun GameGrid(
         ),
         shape = RoundedCornerShape(8.dp)
     ) {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(gridSize),
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(4.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-            userScrollEnabled = false // Disable scrolling on the grid
+                .padding(4.dp)
         ) {
-            items(fullGrid) { tile ->
-                TileItem(tile = tile)
+            // Background grid
+            AnimatedGameGrid(tiles = tiles, gridSize = gridSize)
+        }
+    }
+}
+
+@Composable
+fun AnimatedGameGrid(tiles: List<Tile>, gridSize: Int) {
+    // Track previous tiles to animate movements
+    var previousTiles by remember { mutableStateOf<List<Tile>>(emptyList()) }
+    val currentTiles by rememberUpdatedState(tiles)
+
+    // Create a map of tile ID to position for animation
+    val tilePositions = remember(tiles) {
+        tiles.associate { it.id to it.position }
+    }
+
+    LaunchedEffect(tiles) {
+        previousTiles = tiles
+    }
+
+    Layout(
+        content = {
+            // Background empty cells
+            for (i in 0 until gridSize * gridSize) {
+                EmptyCell()
+            }
+
+            // Animated tiles
+            tiles.forEach { tile ->
+                key(tile.id) {
+                    AnimatedTile(tile = tile)
+                }
+            }
+        },
+        modifier = Modifier.fillMaxSize()
+    ) { measurables, constraints ->
+        val gridWidth = constraints.maxWidth
+        val gridHeight = constraints.maxHeight
+        val cellSize = (minOf(gridWidth, gridHeight) - (gridSize + 1) * 4.dp.roundToPx()) / gridSize
+        val spacing = 4.dp.roundToPx()
+
+        // Measure all children
+        val placeables = measurables.map { it.measure(
+            androidx.compose.ui.unit.Constraints.fixed(cellSize, cellSize)
+        ) }
+
+        layout(gridWidth, gridHeight) {
+            // Place background cells
+            for (i in 0 until gridSize * gridSize) {
+                val row = i / gridSize
+                val col = i % gridSize
+                val x = col * (cellSize + spacing)
+                val y = row * (cellSize + spacing)
+                placeables[i].place(x, y)
+            }
+
+            // Place animated tiles
+            for (i in gridSize * gridSize until placeables.size) {
+                val tileIndex = i - gridSize * gridSize
+                if (tileIndex < tiles.size) {
+                    val tile = tiles[tileIndex]
+                    val row = tile.position / gridSize
+                    val col = tile.position % gridSize
+                    val x = col * (cellSize + spacing)
+                    val y = row * (cellSize + spacing)
+                    placeables[i].place(x, y)
+                }
             }
         }
     }
 }
 
 @Composable
-fun TileItem(tile: Tile?) {
-    val (backgroundColor, textColor) = getTileColors(tile?.value)
+fun EmptyCell() {
+    Card(
+        modifier = Modifier.fillMaxSize(),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFCDC1B4)
+        ),
+        shape = RoundedCornerShape(4.dp)
+    ) {}
+}
+
+@Composable
+fun AnimatedTile(tile: Tile) {
+    // Track if this is a new tile (just appeared)
+    var isNew by remember { mutableStateOf(true) }
+
+    // Animate scale for new tiles
+    val scale by animateFloatAsState(
+        targetValue = if (isNew) 1f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "tile_scale"
+    )
+
+    // Animate position changes
+    val offsetX by animateIntAsState(
+        targetValue = 0,
+        animationSpec = tween(
+            durationMillis = 150,
+            easing = FastOutSlowInEasing
+        ),
+        label = "tile_offset_x"
+    )
+
+    val offsetY by animateIntAsState(
+        targetValue = 0,
+        animationSpec = tween(
+            durationMillis = 150,
+            easing = FastOutSlowInEasing
+        ),
+        label = "tile_offset_y"
+    )
+
+    LaunchedEffect(Unit) {
+        isNew = false
+    }
+
+    val (backgroundColor, textColor) = getTileColors(tile.value)
 
     Card(
         modifier = Modifier
-            .aspectRatio(1f)
-            .fillMaxWidth(),
+            .fillMaxSize()
+            .offset { IntOffset(offsetX, offsetY) }
+            .scale(scale),
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor
         ),
-        shape = RoundedCornerShape(4.dp)
+        shape = RoundedCornerShape(4.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            if (tile != null) {
-                Text(
-                    text = tile.value.toString(),
-                    fontSize = when {
-                        tile.value < 100 -> 32.sp
-                        tile.value < 1000 -> 28.sp
-                        else -> 24.sp
-                    },
-                    fontWeight = FontWeight.Bold,
-                    color = textColor
-                )
-            }
+            Text(
+                text = tile.value.toString(),
+                fontSize = when {
+                    tile.value < 100 -> 32.sp
+                    tile.value < 1000 -> 28.sp
+                    else -> 24.sp
+                },
+                fontWeight = FontWeight.Bold,
+                color = textColor
+            )
         }
     }
 }
