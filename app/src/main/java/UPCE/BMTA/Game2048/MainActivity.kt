@@ -63,9 +63,10 @@ fun GameScreen(viewModel: GameViewModel) {
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header with title and score
+            // Header with best score, new game button, and current score
             GameHeader(
                 score = gameState?.score ?: 0,
+                bestScore = gameState?.bestScore ?: 0,
                 onNewGame = { viewModel.newGame() }
             )
 
@@ -105,7 +106,7 @@ fun GameScreen(viewModel: GameViewModel) {
 }
 
 @Composable
-fun GameHeader(score: Int, onNewGame: () -> Unit) {
+fun GameHeader(score: Int, bestScore: Int, onNewGame: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -113,55 +114,61 @@ fun GameHeader(score: Int, onNewGame: () -> Unit) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Title
-        Text(
-            text = "2048",
-            fontSize = 48.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
+        // Best Score Card (Left)
+        ScoreCard(
+            label = "BEST",
+            score = bestScore,
+            modifier = Modifier.weight(1f)
         )
 
-        // Score and Button Column
-        Column(
-            horizontalAlignment = Alignment.End,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+        // New Game Button (Center)
+        Button(
+            onClick = onNewGame,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF8F7A66)
+            ),
+            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier.padding(horizontal = 8.dp)
         ) {
-            // Score Card
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFFBBADA0)
-                ),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "SCORE",
-                        fontSize = 12.sp,
-                        color = Color(0xFFEEE4DA),
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = score.toString(),
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                }
-            }
+            Text("New Game", fontWeight = FontWeight.Bold)
+        }
 
-            // New Game Button
-            Button(
-                onClick = onNewGame,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF8F7A66)
-                ),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text("New Game", fontWeight = FontWeight.Bold)
-            }
+        // Current Score Card (Right)
+        ScoreCard(
+            label = "SCORE",
+            score = score,
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+fun ScoreCard(label: String, score: Int, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFBBADA0)
+        ),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = label,
+                fontSize = 12.sp,
+                color = Color(0xFFEEE4DA),
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = score.toString(),
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
         }
     }
 }
