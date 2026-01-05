@@ -1,3 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Game2048</string>
-</resources>
+    <string name="new_game">New Game</string>
+    <string name="try_again">Try Again</string>
+    <string name="game_over">Game Over!</string>
+    <string name="you_win">You Win!</string>
+    <string name="score">SCORE</string>
+    <string name="instructions">Swipe to move tiles. Combine tiles with the same number to reach 2048!</string>
