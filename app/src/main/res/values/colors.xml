@@ -18,7 +18,7 @@
     <color name="tile_2">#FF0000</color>
     <color name="tile_4">#FF7F00</color>
     <color name="tile_8">#FFFF00</color>
-    <color name="tile_16">#7FFF00</color>
+    <color name="tile_16">#AAFF00</color>
     <color name="tile_32">#00FF00</color>
     <color name="tile_64">#00FF7F</color>
     <color name="tile_128">#00FFFF</color>
