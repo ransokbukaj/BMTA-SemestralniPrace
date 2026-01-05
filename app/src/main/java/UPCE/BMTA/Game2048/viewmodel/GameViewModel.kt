@@ -30,7 +30,6 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         nextTileId = 0
         val initialTiles = mutableListOf<Tile>()
 
-        // Přidáme dvě náhodná políčka na start
         repeat(2) {
             addRandomTile(initialTiles)
         }
@@ -67,7 +66,6 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         var score = currentState.score
         var moved = false
 
-        // Rozdělíme políčka do řádků nebo sloupců podle směru
         val groups = when (direction) {
             Direction.LEFT, Direction.RIGHT -> {
                 (0 until gridSize).map { row ->
@@ -99,7 +97,6 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                 val current = sortedGroup[i]
 
                 if (i + 1 < sortedGroup.size && sortedGroup[i + 1].value == current.value) {
-                    // Sloučíme dvě políčka
                     val newValue = current.value * 2
                     score += newValue
 
@@ -121,7 +118,6 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         if (moved) {
             addRandomTile(newTiles)
 
-            // Update best score if current score is higher
             if (score > bestScore) {
                 bestScore = score
             }
@@ -151,21 +147,18 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun isGameOver(tiles: List<Tile>): Boolean {
-        // Pokud jsou volná místa, hra není u konce
         if (tiles.size < totalCells) return false
 
-        // Zkontrolujeme, zda lze sloučit nějaká políčka
         for (row in 0 until gridSize) {
             for (col in 0 until gridSize) {
                 val position = row * gridSize + col
                 val tile = tiles.find { it.position == position } ?: continue
 
-                // Zkontrolujeme sousedy
                 val neighbors = listOf(
-                    position - gridSize, // nahoru
-                    position + gridSize, // dolů
-                    if (col > 0) position - 1 else -1, // vlevo
-                    if (col < gridSize - 1) position + 1 else -1 // vpravo
+                    position - gridSize,
+                    position + gridSize,
+                    if (col > 0) position - 1 else -1,
+                    if (col < gridSize - 1) position + 1 else -1
                 )
 
                 for (neighborPos in neighbors) {

@@ -50,57 +50,104 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun GameScreen(viewModel: GameViewModel) {
     val gameState by viewModel.gameState.observeAsState()
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val isLandscape = configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
 
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Header with best score, new game button, and current score
-            GameHeader(
-                score = gameState?.score ?: 0,
-                bestScore = gameState?.bestScore ?: 0,
-                onNewGame = { viewModel.newGame() }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Game Grid
-            Box(
+        if (isLandscape) {
+            Row(
                 modifier = Modifier
-                    .weight(1f)
-                    .aspectRatio(1f)
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                GameGrid(
-                    tiles = gameState?.tiles ?: emptyList(),
-                    onSwipe = { direction -> viewModel.move(direction) }
-                )
+                Column(
+                    modifier = Modifier
+                        .weight(0.3f)
+                        .fillMaxHeight(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    GameHeaderVertical(
+                        score = gameState?.score ?: 0,
+                        bestScore = gameState?.bestScore ?: 0,
+                        onNewGame = { viewModel.newGame() }
+                    )
 
-                // Game Over Overlay
-                if (gameState?.gameOver == true || (gameState?.hasWon == true && gameState?.gameOver == false)) {
-                    GameOverOverlay(
-                        hasWon = gameState?.hasWon ?: false,
-                        onTryAgain = { viewModel.newGame() }
+                    Text(
+                        text = "Swipe to move tiles. Combine tiles with the same number to reach 2048!",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
                     )
                 }
+
+                Box(
+                    modifier = Modifier
+                        .weight(0.7f)
+                        .aspectRatio(1f)
+                ) {
+                    GameGrid(
+                        tiles = gameState?.tiles ?: emptyList(),
+                        onSwipe = { direction -> viewModel.move(direction) }
+                    )
+
+                    if (gameState?.gameOver == true || (gameState?.hasWon == true && gameState?.gameOver == false)) {
+                        GameOverOverlay(
+                            hasWon = gameState?.hasWon ?: false,
+                            onTryAgain = { viewModel.newGame() }
+                        )
+                    }
+                }
             }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                GameHeader(
+                    score = gameState?.score ?: 0,
+                    bestScore = gameState?.bestScore ?: 0,
+                    onNewGame = { viewModel.newGame() }
+                )
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            // Instructions
-            Text(
-                text = "Swipe to move tiles. Combine tiles with the same number to reach 2048!",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .aspectRatio(1f)
+                ) {
+                    GameGrid(
+                        tiles = gameState?.tiles ?: emptyList(),
+                        onSwipe = { direction -> viewModel.move(direction) }
+                    )
+
+                    if (gameState?.gameOver == true || (gameState?.hasWon == true && gameState?.gameOver == false)) {
+                        GameOverOverlay(
+                            hasWon = gameState?.hasWon ?: false,
+                            onTryAgain = { viewModel.newGame() }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "Swipe to move tiles. Combine tiles with the same number to reach 2048!",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+            }
         }
     }
 }
@@ -114,14 +161,12 @@ fun GameHeader(score: Int, bestScore: Int, onNewGame: () -> Unit) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Best Score Card (Left)
         ScoreCard(
             label = "BEST",
             score = bestScore,
             modifier = Modifier.weight(1f)
         )
 
-        // New Game Button (Center)
         Button(
             onClick = onNewGame,
             colors = ButtonDefaults.buttonColors(
@@ -133,12 +178,43 @@ fun GameHeader(score: Int, bestScore: Int, onNewGame: () -> Unit) {
             Text("New Game", fontWeight = FontWeight.Bold)
         }
 
-        // Current Score Card (Right)
         ScoreCard(
             label = "SCORE",
             score = score,
             modifier = Modifier.weight(1f)
         )
+    }
+}
+
+@Composable
+fun GameHeaderVertical(score: Int, bestScore: Int, onNewGame: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        ScoreCard(
+            label = "BEST",
+            score = bestScore,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        ScoreCard(
+            label = "SCORE",
+            score = score,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Button(
+            onClick = onNewGame,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF8F7A66)
+            ),
+            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("New Game", fontWeight = FontWeight.Bold)
+        }
     }
 }
 
@@ -192,7 +268,6 @@ fun GameGrid(
             .pointerInput(Unit) {
                 detectDragGestures(
                     onDragStart = {
-                        // Reset offsets when starting a new drag
                         offsetX = 0f
                         offsetY = 0f
                     },
@@ -240,7 +315,6 @@ fun GameGrid(
                 .padding(4.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
-            userScrollEnabled = false // Disable scrolling on the grid
         ) {
             items(fullGrid) { tile ->
                 TileItem(tile = tile)

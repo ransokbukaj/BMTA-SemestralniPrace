@@ -10,8 +10,5 @@ val Purple40 = Color(0xFF6650a4)
 val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
-// Game colors
 val GameBackground = Color(0xFFFAF8EF)
 val GameBackgroundDark = Color(0xFF1E1E1E)
-val TileBackground = Color(0xFFBBADA0)
-val ScoreBackground = Color(0xFFBBADA0)

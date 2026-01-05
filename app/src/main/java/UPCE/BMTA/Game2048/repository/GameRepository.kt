@@ -33,7 +33,6 @@ class GameRepository(private val context: Context) {
             val file = File(context.filesDir, fileName)
             file.writeText(jsonObject.toString())
 
-            // Save best score separately for persistence
             saveBestScore(gameState.bestScore)
         } catch (e: Exception) {
             e.printStackTrace()

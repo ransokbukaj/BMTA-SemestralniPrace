@@ -35,7 +35,7 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun Game2048Theme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = false, // Vypnuto pro konzistentní barevné schéma hry
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
