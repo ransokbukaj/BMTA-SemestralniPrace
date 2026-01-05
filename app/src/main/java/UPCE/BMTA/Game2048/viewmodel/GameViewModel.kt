@@ -39,7 +39,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             score = 0,
             bestScore = bestScore,
             gameOver = false,
-            hasWon = false
+            hasWon = false,
+            showWinOverlay = true
         )
 
         saveGame()
@@ -130,7 +131,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                 score = score,
                 bestScore = bestScore,
                 gameOver = gameOver,
-                hasWon = hasWon || currentState.hasWon
+                hasWon = hasWon || currentState.hasWon,
+                showWinOverlay = if (hasWon) true else currentState.showWinOverlay
             )
 
             saveGame()
@@ -177,6 +179,12 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     fun saveGame() {
         _gameState.value?.let { repository.saveGame(it) }
+    }
+
+    fun continueGame() {
+        val currentState = _gameState.value ?: return
+        _gameState.value = currentState.copy(showWinOverlay = false)
+        saveGame()
     }
 
     private fun loadGame() {

@@ -19,6 +19,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -59,50 +61,57 @@ fun GameScreen(viewModel: GameViewModel) {
             .background(MaterialTheme.colorScheme.background)
     ) { paddingValues ->
         if (isLandscape) {
-            Row(
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
                     .padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                contentAlignment = Alignment.Center
             ) {
-                Column(
+                Row(
                     modifier = Modifier
-                        .width(200.dp)
-                        .fillMaxHeight(),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .fillMaxSize(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    GameHeaderVertical(
-                        score = gameState?.score ?: 0,
-                        bestScore = gameState?.bestScore ?: 0,
-                        onNewGame = { viewModel.newGame() }
-                    )
-
-                    Text(
-                        text = "Swipe to move tiles. Combine tiles with the same number to reach 2048!",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
-                }
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .aspectRatio(1f)
-                        .align(Alignment.CenterVertically)
-                ) {
-                    GameGrid(
-                        tiles = gameState?.tiles ?: emptyList(),
-                        onSwipe = { direction -> viewModel.move(direction) }
-                    )
-
-                    if (gameState?.gameOver == true || (gameState?.hasWon == true && gameState?.gameOver == false)) {
-                        GameOverOverlay(
-                            hasWon = gameState?.hasWon ?: false,
-                            onTryAgain = { viewModel.newGame() }
+                    Column(
+                        modifier = Modifier
+                            .width(200.dp)
+                            .wrapContentHeight(),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        GameHeaderVertical(
+                            score = gameState?.score ?: 0,
+                            bestScore = gameState?.bestScore ?: 0,
+                            onNewGame = { viewModel.newGame() }
                         )
+
+                        Text(
+                            text = stringResource(R.string.instructions),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight(0.85f)
+                            .aspectRatio(1f)
+                    ) {
+                        GameGrid(
+                            tiles = gameState?.tiles ?: emptyList(),
+                            onSwipe = { direction -> viewModel.move(direction) }
+                        )
+
+                        if (gameState?.gameOver == true || (gameState?.hasWon == true && gameState?.showWinOverlay == true)) {
+                            GameOverOverlay(
+                                hasWon = gameState?.hasWon ?: false,
+                                onTryAgain = { viewModel.newGame() },
+                                onKeepPlaying = { viewModel.continueGame() }
+                            )
+                        }
                     }
                 }
             }
@@ -132,10 +141,11 @@ fun GameScreen(viewModel: GameViewModel) {
                         onSwipe = { direction -> viewModel.move(direction) }
                     )
 
-                    if (gameState?.gameOver == true || (gameState?.hasWon == true && gameState?.gameOver == false)) {
+                    if (gameState?.gameOver == true || (gameState?.hasWon == true && gameState?.showWinOverlay == true)) {
                         GameOverOverlay(
                             hasWon = gameState?.hasWon ?: false,
-                            onTryAgain = { viewModel.newGame() }
+                            onTryAgain = { viewModel.newGame() },
+                            onKeepPlaying = { viewModel.continueGame() }
                         )
                     }
                 }
@@ -143,7 +153,7 @@ fun GameScreen(viewModel: GameViewModel) {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "Swipe to move tiles. Combine tiles with the same number to reach 2048!",
+                    text = stringResource(R.string.instructions),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
@@ -155,35 +165,41 @@ fun GameScreen(viewModel: GameViewModel) {
 
 @Composable
 fun GameHeader(score: Int, bestScore: Int, onNewGame: () -> Unit) {
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        ScoreCard(
-            label = "BEST",
-            score = bestScore,
-            modifier = Modifier.weight(1f)
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            ScoreCard(
+                label = stringResource(R.string.best),
+                score = bestScore,
+                modifier = Modifier.weight(1f)
+            )
+
+            ScoreCard(
+                label = stringResource(R.string.score),
+                score = score,
+                modifier = Modifier.weight(1f)
+            )
+        }
 
         Button(
             onClick = onNewGame,
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF8F7A66)
+                containerColor = colorResource(R.color.game_button)
             ),
             shape = RoundedCornerShape(8.dp),
-            modifier = Modifier.padding(horizontal = 8.dp)
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Text("New Game", fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.new_game), fontWeight = FontWeight.Bold)
         }
-
-        ScoreCard(
-            label = "SCORE",
-            score = score,
-            modifier = Modifier.weight(1f)
-        )
     }
 }
 
@@ -195,13 +211,13 @@ fun GameHeaderVertical(score: Int, bestScore: Int, onNewGame: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         ScoreCard(
-            label = "BEST",
+            label = stringResource(R.string.best),
             score = bestScore,
             modifier = Modifier.fillMaxWidth()
         )
 
         ScoreCard(
-            label = "SCORE",
+            label = stringResource(R.string.score),
             score = score,
             modifier = Modifier.fillMaxWidth()
         )
@@ -209,12 +225,12 @@ fun GameHeaderVertical(score: Int, bestScore: Int, onNewGame: () -> Unit) {
         Button(
             onClick = onNewGame,
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF8F7A66)
+                containerColor = colorResource(R.color.game_button)
             ),
             shape = RoundedCornerShape(8.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("New Game", fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.new_game), fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -224,7 +240,7 @@ fun ScoreCard(label: String, score: Int, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFBBADA0)
+            containerColor = colorResource(R.color.score_card_background)
         ),
         shape = RoundedCornerShape(8.dp)
     ) {
@@ -237,14 +253,14 @@ fun ScoreCard(label: String, score: Int, modifier: Modifier = Modifier) {
             Text(
                 text = label,
                 fontSize = 12.sp,
-                color = Color(0xFFEEE4DA),
+                color = colorResource(R.color.score_label),
                 fontWeight = FontWeight.Bold
             )
             Text(
                 text = score.toString(),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = colorResource(R.color.white)
             )
         }
     }
@@ -305,7 +321,7 @@ fun GameGrid(
                 )
             },
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFBBADA0)
+            containerColor = colorResource(R.color.grid_background)
         ),
         shape = RoundedCornerShape(8.dp)
     ) {
@@ -361,12 +377,13 @@ fun TileItem(tile: Tile?) {
 @Composable
 fun GameOverOverlay(
     hasWon: Boolean,
-    onTryAgain: () -> Unit
+    onTryAgain: () -> Unit,
+    onKeepPlaying: () -> Unit
 ) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.7f)),
+            .background(colorResource(R.color.game_over_overlay)),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -374,21 +391,39 @@ fun GameOverOverlay(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = if (hasWon) "You Win!" else "Game Over!",
+                text = if (hasWon) stringResource(R.string.you_win) else stringResource(R.string.game_over),
                 fontSize = 48.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = colorResource(R.color.white)
             )
+
+            if (hasWon) {
+                Button(
+                    onClick = onKeepPlaying,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colorResource(R.color.game_button)
+                    ),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.width(200.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.keep_playing),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
 
             Button(
                 onClick = onTryAgain,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF8F7A66)
+                    containerColor = colorResource(R.color.game_button)
                 ),
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.width(200.dp)
             ) {
                 Text(
-                    text = "Try Again",
+                    text = stringResource(R.string.try_again),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -400,18 +435,18 @@ fun GameOverOverlay(
 @Composable
 fun getTileColors(value: Int?): Pair<Color, Color> {
     return when (value) {
-        null -> Pair(Color(0xFFCDC1B4), Color.Transparent)
-        2 -> Pair(Color(0xFFEEE4DA), Color(0xFF776E65))
-        4 -> Pair(Color(0xFFEDE0C8), Color(0xFF776E65))
-        8 -> Pair(Color(0xFFF2B179), Color(0xFFF9F6F2))
-        16 -> Pair(Color(0xFFF59563), Color(0xFFF9F6F2))
-        32 -> Pair(Color(0xFFF67C5F), Color(0xFFF9F6F2))
-        64 -> Pair(Color(0xFFF65E3B), Color(0xFFF9F6F2))
-        128 -> Pair(Color(0xFFEDCF72), Color(0xFFF9F6F2))
-        256 -> Pair(Color(0xFFEDCC61), Color(0xFFF9F6F2))
-        512 -> Pair(Color(0xFFEDC850), Color(0xFFF9F6F2))
-        1024 -> Pair(Color(0xFFEDC53F), Color(0xFFF9F6F2))
-        2048 -> Pair(Color(0xFFEDC22E), Color(0xFFF9F6F2))
-        else -> Pair(Color(0xFF3C3A32), Color(0xFFF9F6F2))
+        null -> Pair(colorResource(R.color.tile_empty), Color.Transparent)
+        2 -> Pair(colorResource(R.color.tile_2), colorResource(R.color.tile_text_light))
+        4 -> Pair(colorResource(R.color.tile_4), colorResource(R.color.tile_text_dark))
+        8 -> Pair(colorResource(R.color.tile_8), colorResource(R.color.tile_text_dark))
+        16 -> Pair(colorResource(R.color.tile_16), colorResource(R.color.tile_text_dark))
+        32 -> Pair(colorResource(R.color.tile_32), colorResource(R.color.tile_text_dark))
+        64 -> Pair(colorResource(R.color.tile_64), colorResource(R.color.tile_text_dark))
+        128 -> Pair(colorResource(R.color.tile_128), colorResource(R.color.tile_text_dark))
+        256 -> Pair(colorResource(R.color.tile_256), colorResource(R.color.tile_text_light))
+        512 -> Pair(colorResource(R.color.tile_512), colorResource(R.color.tile_text_light))
+        1024 -> Pair(colorResource(R.color.tile_1024), colorResource(R.color.tile_text_light))
+        2048 -> Pair(colorResource(R.color.tile_2048), colorResource(R.color.tile_text_light))
+        else -> Pair(colorResource(R.color.tile_super), colorResource(R.color.tile_text_light))
     }
 }

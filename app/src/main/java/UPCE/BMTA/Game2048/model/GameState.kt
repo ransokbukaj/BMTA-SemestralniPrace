@@ -5,5 +5,6 @@ data class GameState(
     val score: Int,
     val bestScore: Int,
     val gameOver: Boolean,
-    val hasWon: Boolean
+    val hasWon: Boolean,
+    val showWinOverlay: Boolean = true
 )

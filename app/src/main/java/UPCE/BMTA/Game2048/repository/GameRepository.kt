@@ -19,6 +19,7 @@ class GameRepository(private val context: Context) {
             jsonObject.put("bestScore", gameState.bestScore)
             jsonObject.put("gameOver", gameState.gameOver)
             jsonObject.put("hasWon", gameState.hasWon)
+            jsonObject.put("showWinOverlay", gameState.showWinOverlay)
 
             val tilesArray = JSONArray()
             gameState.tiles.forEach { tile ->
@@ -80,6 +81,11 @@ class GameRepository(private val context: Context) {
             }
             val gameOver = jsonObject.getBoolean("gameOver")
             val hasWon = jsonObject.getBoolean("hasWon")
+            val showWinOverlay = if (jsonObject.has("showWinOverlay")) {
+                jsonObject.getBoolean("showWinOverlay")
+            } else {
+                true
+            }
 
             val tilesArray = jsonObject.getJSONArray("tiles")
             val tiles = mutableListOf<Tile>()
@@ -95,7 +101,7 @@ class GameRepository(private val context: Context) {
                 )
             }
 
-            return GameState(tiles, score, bestScore, gameOver, hasWon)
+            return GameState(tiles, score, bestScore, gameOver, hasWon, showWinOverlay)
         } catch (e: Exception) {
             e.printStackTrace()
             return null
