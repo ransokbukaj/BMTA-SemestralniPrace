@@ -184,6 +184,11 @@ fun GameGrid(
             .fillMaxSize()
             .pointerInput(Unit) {
                 detectDragGestures(
+                    onDragStart = {
+                        // Reset offsets when starting a new drag
+                        offsetX = 0f
+                        offsetY = 0f
+                    },
                     onDragEnd = {
                         if (abs(offsetX) > abs(offsetY)) {
                             if (abs(offsetX) > 50) {
@@ -205,6 +210,10 @@ fun GameGrid(
                         offsetX = 0f
                         offsetY = 0f
                     },
+                    onDragCancel = {
+                        offsetX = 0f
+                        offsetY = 0f
+                    },
                     onDrag = { change, dragAmount ->
                         change.consume()
                         offsetX += dragAmount.x
@@ -223,7 +232,8 @@ fun GameGrid(
                 .fillMaxSize()
                 .padding(4.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            userScrollEnabled = false // Disable scrolling on the grid
         ) {
             items(fullGrid) { tile ->
                 TileItem(tile = tile)
